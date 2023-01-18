@@ -15,7 +15,7 @@ import (
 
 func AllPermissions(context *gin.Context) {
 	// Validate Permission
-	err := utils.ValidatePermission(context, "permission.all")
+	err := utils.ValidatePermission(context, "permissions.all")
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -41,7 +41,7 @@ func AllPermissions(context *gin.Context) {
 
 func GetPermission(context *gin.Context) {
 	// Validate Permission
-	err := utils.ValidatePermission(context, "permission.show")
+	err := utils.ValidatePermission(context, "permissions.show")
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -62,7 +62,7 @@ func GetPermission(context *gin.Context) {
 
 func AddPermission(context *gin.Context) {
 	// Validate Permission
-	err := utils.ValidatePermission(context, "permission.create")
+	err := utils.ValidatePermission(context, "permissions.create")
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -104,7 +104,7 @@ func AddPermission(context *gin.Context) {
 
 func UpdatePermission(context *gin.Context) {
 	// Validate Permission
-	err := utils.ValidatePermission(context, "permission.edit")
+	err := utils.ValidatePermission(context, "permissions.edit")
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -149,7 +149,7 @@ func UpdatePermission(context *gin.Context) {
 
 func DeletePermission(context *gin.Context) {
 	// Validate Permission
-	err := utils.ValidatePermission(context, "permission.destroy")
+	err := utils.ValidatePermission(context, "permissions.destroy")
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

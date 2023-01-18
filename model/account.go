@@ -10,8 +10,8 @@ type Account struct {
 	gorm.Model
 
 	// Columns
-	Name          string `gorm:"default:null"`
-	Email         string `gorm:"default:null"`
+	Name          string `gorm:"default:null,index:idx_name"`
+	Email         string `gorm:"default:null,index:idx_email"`
 	Phone         string `gorm:"default:null"`
 	Address       string `gorm:"default:null"`
 	AddressNumber string `gorm:"default:null"`

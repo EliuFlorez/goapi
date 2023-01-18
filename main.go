@@ -15,6 +15,7 @@ import (
 func main() {
 	loadEnv()
 	loadDatabase()
+	seedDatabase()
 	serveApplication()
 }
 
@@ -38,6 +39,25 @@ func loadDatabase() {
 	database.Sql.AutoMigrate(&model.Permission{})
 	database.Sql.AutoMigrate(&model.RolePermission{})
 	database.Sql.AutoMigrate(&model.UserRole{})
+}
+
+func seedDatabase() {
+	seedRoles := []string{"roles", "permissions", "accounts"}
+	for _, roleName := range seedRoles {
+		role := model.Role{Name: roleName}
+		roleResult := database.Sql.Debug().FirstOrCreate(&role, model.Role{Name: roleName})
+		if roleResult.RowsAffected > 0 {
+			seedPermissions := []string{"all", "show", "create", "edit", "destroy"}
+			for _, permissionName := range seedPermissions {
+				rolePermission := roleName + "." + permissionName
+				permission := model.Permission{Name: rolePermission}
+				permissionResult := database.Sql.Debug().FirstOrCreate(&permission, model.Permission{Name: rolePermission})
+				if permissionResult.RowsAffected > 0 {
+					model.AssignPermissions(roleName, rolePermission)
+				}
+			}
+		}
+	}
 }
 
 func serveApplication() {

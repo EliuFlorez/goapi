@@ -52,7 +52,7 @@ func AssignPermissions(roleName string, permName string) error {
 	// ignore any assigned permission
 	var rolePerm RolePermission
 	res := database.Sql.Debug().Where("role_id = ?", role.ID).Where("permission_id =?", perm.ID).First(&rolePerm)
-	if res.Error != nil {
+	if res.RowsAffected > 0 {
 		// assign the record
 		cRes := database.Sql.Debug().Create(&RolePermission{RoleID: role.ID, PermissionID: perm.ID})
 		if cRes.Error != nil {

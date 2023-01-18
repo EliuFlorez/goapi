@@ -12,7 +12,7 @@ type Role struct {
 	gorm.Model
 
 	// Columns
-	Name string
+	Name string `gorm:"index:idx_name"`
 }
 
 type RoleResponse struct {

@@ -19,17 +19,17 @@ type User struct {
 
 	// Two Factor Auth
 	SignInTwofa     bool   `gorm:"default:false"`
-	TwofaCode       string `gorm:"default:null"`
+	TwofaCode       string `gorm:"default:null,index:idx_twofa_code"`
 	TwofaCodeAt     time.Time
 	TwofaCodeSentAt time.Time
 
 	// Change email
-	EmailToken  string `gorm:"default:null"`
+	EmailToken  string `gorm:"default:null,index:idx_email_token"`
 	EmailAt     time.Time
 	EmailSentAt time.Time
 
 	// Recoverable
-	PasswordToken  string `gorm:"default:null"`
+	PasswordToken  string `gorm:"default:null,index:idx_password_token"`
 	PasswordAt     time.Time
 	PasswordSentAt time.Time
 
@@ -41,19 +41,19 @@ type User struct {
 	LastSignInIp    string `gorm:"default:null"`
 
 	// Confirmable
-	ConfirmationToken  string `gorm:"default:null"`
+	ConfirmationToken  string `gorm:"default:null,index:idx_confirmation_token"`
 	ConfirmationAt     time.Time
 	ConfirmationSentAt time.Time
 	ConfirmationEmail  bool `gorm:"default:false"`
 
 	// Invintation
-	InvitationToken  string `gorm:"default:null"`
+	InvitationToken  string `gorm:"default:null,index:idx_invitation_token"`
 	InvitationAt     time.Time
 	InvitationSentAt time.Time
 
 	// Lockable
 	FailedAttempts int
-	LockedToken    string `gorm:"default:null"`
+	LockedToken    string `gorm:"default:null,index:idx_locked_token"`
 	LockedAt       time.Time
 	LockedSentAt   time.Time
 

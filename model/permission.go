@@ -12,7 +12,7 @@ type Permission struct {
 	gorm.Model
 
 	// Columns
-	Name string
+	Name string `gorm:"index:idx_name"`
 }
 
 // TableName sets the table name
