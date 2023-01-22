@@ -42,18 +42,25 @@ func loadDatabase() {
 }
 
 func seedDatabase() {
-	seedRoles := []string{"roles", "permissions", "accounts"}
+	seedRoles := []string{"admin", "office", "owner", "user"}
+	seedModules := []string{"roles", "permissions", "accounts", "invoices", "crms", "prosperts"}
+	seedPermissions := []string{"all", "show", "create", "edit", "destroy"}
 	for _, roleName := range seedRoles {
 		role := model.Role{Name: roleName}
 		roleResult := database.Sql.Debug().FirstOrCreate(&role, model.Role{Name: roleName})
 		if roleResult.RowsAffected > 0 {
-			seedPermissions := []string{"all", "show", "create", "edit", "destroy"}
-			for _, permissionName := range seedPermissions {
-				rolePermission := roleName + "." + permissionName
-				permission := model.Permission{Name: rolePermission}
-				permissionResult := database.Sql.Debug().FirstOrCreate(&permission, model.Permission{Name: rolePermission})
-				if permissionResult.RowsAffected > 0 {
-					model.AssignPermissions(roleName, rolePermission)
+			if roleName == "user" {
+				seedModules = []string{"crms", "prosperts"}
+				seedPermissions = []string{"all", "show"}
+			}
+			for _, moduleName := range seedModules {
+				for _, permissionName := range seedPermissions {
+					modulePermission := moduleName + "." + permissionName
+					permission := model.Permission{Name: modulePermission}
+					permissionResult := database.Sql.Debug().FirstOrCreate(&permission, model.Permission{Name: modulePermission})
+					if permissionResult.RowsAffected > 0 {
+						model.AssignPermissions(roleName, permissionName)
+					}
 				}
 			}
 		}

@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+	"fmt"
 	"goapi/database"
 
 	"gorm.io/gorm"
@@ -12,7 +13,6 @@ type RolePermission struct {
 	gorm.Model
 
 	// Columns
-	ID           uint
 	RoleID       uint `gorm:"primarykey"`
 	PermissionID uint `gorm:"primarykey"`
 }
@@ -29,7 +29,7 @@ func (r RolePermission) TableName() string {
 // if any of these permissions doesn't have a matching record in the database the operations stops, changes reverted
 // and error is returned
 // in case of success nothing is returned
-func AssignPermissions(roleName string, permName string) error {
+func AssignPermissions(roleName string, permissionName string) error {
 	// get the role id
 	var role Role
 	roleData := database.Sql.Debug().Where("name = ?", roleName).First(&role)
@@ -39,22 +39,27 @@ func AssignPermissions(roleName string, permName string) error {
 		}
 	}
 
-	var perm Permission
-
-	// get the permissions ids
-	permissionData := database.Sql.Debug().Where("name = ?", permName).First(&perm)
+	// get the permissions id
+	var permission Permission
+	permissionData := database.Sql.Debug().Where("name = ?", permissionName).First(&permission)
 	if permissionData.Error != nil {
 		if errors.Is(permissionData.Error, gorm.ErrRecordNotFound) {
 			return ErrPermissionNotFound
 		}
 	}
 
+	fmt.Print("role-id:")
+	fmt.Println(role.ID)
+
+	fmt.Print("permission-id:")
+	fmt.Println(permission.ID)
+
 	// ignore any assigned permission
-	var rolePerm RolePermission
-	res := database.Sql.Debug().Where("role_id = ?", role.ID).Where("permission_id =?", perm.ID).First(&rolePerm)
-	if res.RowsAffected > 0 {
+	var rolePermission RolePermission
+	res := database.Sql.Debug().Where("role_id = ?", role.ID).Where("permission_id =?", permission.ID).First(&rolePermission)
+	if res.Error != nil {
 		// assign the record
-		cRes := database.Sql.Debug().Create(&RolePermission{RoleID: role.ID, PermissionID: perm.ID})
+		cRes := database.Sql.Debug().Create(&RolePermission{RoleID: role.ID, PermissionID: permission.ID})
 		if cRes.Error != nil {
 			return cRes.Error
 		}

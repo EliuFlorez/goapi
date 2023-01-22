@@ -12,7 +12,8 @@ type Role struct {
 	gorm.Model
 
 	// Columns
-	Name string `gorm:"index:idx_name"`
+	Name   string `gorm:"index:idx_name"`
+	UserID uint
 }
 
 type RoleResponse struct {

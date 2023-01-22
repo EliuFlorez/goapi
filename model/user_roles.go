@@ -12,7 +12,6 @@ type UserRole struct {
 	gorm.Model
 
 	// Columns
-	ID     uint
 	UserID uint `gorm:"primarykey"`
 	RoleID uint `gorm:"primarykey"`
 }
@@ -24,10 +23,10 @@ func (u UserRole) TableName() string {
 
 // GetUserRoles returns all user assigned roles
 func GetUserRoles(userID uint) ([]Role, error) {
-	var roles []Role
 	var userRoles []UserRole
 	database.Sql.Debug().Where("user_id = ?", userID).Find(&userRoles)
 
+	var roles []Role
 	for _, r := range userRoles {
 		var role Role
 		// for every user role get the role name

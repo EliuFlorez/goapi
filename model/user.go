@@ -58,7 +58,9 @@ type User struct {
 	LockedSentAt   time.Time
 
 	// Relations
-	Accounts []*Account `gorm:"many2many:user_accounts;references:ID;"`
+	Roles       []Role
+	Permissions []Permission
+	Accounts    []*Account `gorm:"many2many:user_accounts;references:ID;"`
 }
 
 type UserResponse struct {
