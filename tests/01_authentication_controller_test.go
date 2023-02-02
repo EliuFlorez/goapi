@@ -11,7 +11,7 @@ import (
 )
 
 func TestSignUp(t *testing.T) {
-	count := model.CountUser()
+	count := model.TotalUsers()
 
 	if count <= 0 {
 		data := request.SignUpInput{

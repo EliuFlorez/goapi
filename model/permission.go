@@ -41,7 +41,7 @@ func ListPermissions(limit int) ([]Permission, error) {
 }
 
 // GetPermission return first stored permission
-func GetPermission(id int) (Permission, error) {
+func GetPermission(id uint) (Permission, error) {
 	var permission Permission
 	err := database.Sql.Debug().Where("ID = ?", id).First(&permission).Error
 	if err != nil {
@@ -69,7 +69,7 @@ func CreatePermission(permName string) error {
 
 // DeleteRole deletes a given role
 // if the role is assigned to a user it returns an error
-func EditPermission(id int, name string) error {
+func EditPermission(id uint, name string) error {
 	// check if the permission
 	var permission Permission
 	res := database.Sql.Debug().Where("ID = ?", id).First(&permission)
@@ -89,7 +89,7 @@ func EditPermission(id int, name string) error {
 
 // DeletePermission deletes a given permission
 // if the permission is assigned to a role it returns an error
-func DestroyPermission(id int) error {
+func DestroyPermission(id uint) error {
 	// find the permission
 	var permission Permission
 	res := database.Sql.Debug().Where("ID = ?", id).First(&permission)

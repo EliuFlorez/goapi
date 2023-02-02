@@ -44,6 +44,12 @@ type AccountForm struct {
 	Name string `validate:"required"`
 }
 
+type UserForm struct {
+	FirstName string `validate:"required"`
+	LastName  string `validate:"required"`
+	Email     string `validate:"required|email"`
+}
+
 type RoleForm struct {
 	Name string `validate:"required"`
 }

@@ -10,8 +10,8 @@ type Account struct {
 	gorm.Model
 
 	// Columns
-	Name          string `gorm:"default:null,index:idx_name"`
-	Email         string `gorm:"default:null,index:idx_email"`
+	Name          string `gorm:"default:null;index:idx_name"`
+	Email         string `gorm:"default:null;index:idx_email"`
 	Phone         string `gorm:"default:null"`
 	Address       string `gorm:"default:null"`
 	AddressNumber string `gorm:"default:null"`
@@ -60,7 +60,7 @@ func (account *Account) Total(user *User) int64 {
 	return database.Sql.Model(&user).Association("Accounts").Count()
 }
 
-func (a *Account) Get(user *User, id int) (Account, error) {
+func (a *Account) Get(user *User, id uint) (Account, error) {
 	var account Account
 
 	err := database.Sql.Where("ID = ?", id).Limit(1).Model(&user).Association("Accounts").Find(&account)

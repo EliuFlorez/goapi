@@ -5,26 +5,25 @@ import (
 	"goapi/request"
 	"goapi/utils"
 	"goapi/validator"
+	"html"
 	"math"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gookit/validate"
 )
 
-func GetAccounts(context *gin.Context) {
-	// Validate User by permission
-	user, err := utils.ValidateUserByPermission(context, "account.all")
+func GetUsers(context *gin.Context) {
+	// Validate Permission
+	err := utils.ValidatePermission(context, "roles.destroy")
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Model
-	var account model.Account
-
 	// Validate Find
-	accounts, err := account.All(&user, 10)
+	users, err := model.AllUsers(10)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -32,160 +31,169 @@ func GetAccounts(context *gin.Context) {
 
 	// Pagination
 	var pagination utils.Pagination
-	totalResults := account.Total(&user)
+	totalResults := model.TotalUsers()
 	pagination.TotalResults = totalResults
 	totalPages := int(math.Ceil(float64(totalResults) / float64(pagination.Limit)))
 	pagination.TotalPages = totalPages
-	pagination.Results = accounts
+	pagination.Results = users
 
 	context.JSON(http.StatusOK, &pagination)
 }
 
-func GetAccount(context *gin.Context) {
-	// Validate User by permission
-	user, err := utils.ValidateUserByPermission(context, "account.show")
+func GetUser(context *gin.Context) {
+	// Validate Permission
+	err := utils.ValidatePermission(context, "roles.destroy")
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-
-	// Model
-	var account model.Account
 
 	// ID
 	id := utils.StringToUint(context.Param("id"))
 
 	// First
-	accountGet, err := account.Get(&user, id)
-	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	context.JSON(http.StatusOK, &accountGet)
-}
-
-func AddAccount(context *gin.Context) {
-	// Validate User by permission
-	user, err := utils.ValidateUserByPermission(context, "account.create")
-	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	// Input
-	var input request.AccountInput
-
-	// Validate Input
-	if err := context.ShouldBindJSON(&input); err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	// Validator
-	formData := &validator.AccountForm{
-		Name: input.Name,
-	}
-
-	// Validate Form
-	v := validate.Struct(formData)
-	v.StopOnError = false
-
-	// Validate ?
-	if !v.Validate() {
-		context.JSON(http.StatusBadRequest, gin.H{"errors": v.Errors})
-		return
-	}
-
-	// Save
-	err = user.AddAccountToUser(input.Name)
-	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	context.JSON(http.StatusCreated, gin.H{"success": true})
-}
-
-func UpdateAccount(context *gin.Context) {
-	// Validate User by permission
-	user, err := utils.ValidateUserByPermission(context, "account.edit")
-	if err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	// Input
-	var input request.AccountInput
-
-	// Validate Input
-	if err := context.ShouldBindJSON(&input); err != nil {
-		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		return
-	}
-
-	// Validator
-	formData := &validator.AccountForm{
-		Name: input.Name,
-	}
-
-	// Validate Form
-	v := validate.Struct(formData)
-	v.StopOnError = false
-
-	// Validate ?
-	if !v.Validate() {
-		context.JSON(http.StatusBadRequest, gin.H{"errors": v.Errors})
-		return
-	}
-
-	// Models
-	var accountModel model.Account
-
-	// ID
-	id := utils.StringToUint(context.Param("id"))
-
-	// First
-	account, err := accountModel.Get(&user, id)
+	userData, err := model.FindUserById(id)
 	if err != nil {
 		context.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Update
-	account.Name = input.Name
-	err = account.UpdateAccountByUser(&user)
+	context.JSON(http.StatusOK, &userData)
+}
+
+func AddUser(context *gin.Context) {
+	// Validate Permission
+	err := utils.ValidatePermission(context, "roles.destroy")
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	context.JSON(http.StatusOK, &account)
-}
+	// Input
+	var input request.UserInput
 
-func DeleteAccount(context *gin.Context) {
-	// Validate User by permission
-	user, err := utils.ValidateUserByPermission(context, "account.destroy")
-	if err != nil {
+	// Validate Input
+	if err := context.ShouldBindJSON(&input); err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Validator
+	formData := &validator.UserForm{
+		FirstName: input.FirstName,
+		LastName:  input.LastName,
+		Email:     input.Email,
+	}
+
+	// Validate Form
+	v := validate.Struct(formData)
+	v.StopOnError = false
+
+	// Validate ?
+	if !v.Validate() {
+		context.JSON(http.StatusBadRequest, gin.H{"errors": v.Errors})
 		return
 	}
 
 	// Model
-	var accountModel model.Account
+	userNew := model.User{
+		FirstName: input.FirstName,
+		LastName:  input.LastName,
+		Email:     html.EscapeString(strings.TrimSpace(input.Email)),
+	}
+
+	// Save
+	newUser, err := userNew.Save()
+	if err != nil && strings.Contains(err.Error(), "duplicate key value violates unique") {
+		context.JSON(http.StatusConflict, gin.H{"error": "User with that email already exists"})
+		return
+	} else if err != nil {
+		context.JSON(http.StatusBadGateway, gin.H{"error": err.Error()})
+		return
+	}
+
+	context.JSON(http.StatusOK, gin.H{"success": newUser.ID > 0})
+}
+
+func UpdateUser(context *gin.Context) {
+	// Validate Permission
+	err := utils.ValidatePermission(context, "roles.destroy")
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Input
+	var input request.UserInput
+
+	// Validate Input
+	if err := context.ShouldBindJSON(&input); err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Validator
+	formData := &validator.UserForm{
+		FirstName: input.FirstName,
+		LastName:  input.LastName,
+		Email:     input.Email,
+	}
+
+	// Validate Form
+	v := validate.Struct(formData)
+	v.StopOnError = false
+
+	// Validate ?
+	if !v.Validate() {
+		context.JSON(http.StatusBadRequest, gin.H{"errors": v.Errors})
+		return
+	}
 
 	// ID
 	id := utils.StringToUint(context.Param("id"))
 
 	// First
-	account, err := accountModel.Get(&user, id)
+	userData, err := model.FindUserById(id)
+	if err != nil {
+		context.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	// Edit
+	userData.FirstName = input.FirstName
+	userData.LastName = input.LastName
+	userData.Email = input.Email
+
+	// Update
+	err = userData.Update()
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	context.JSON(http.StatusOK, gin.H{"success": true})
+}
+
+func DeleteUser(context *gin.Context) {
+	// Validate Permission
+	err := utils.ValidatePermission(context, "roles.destroy")
+	if err != nil {
+		context.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// ID
+	id := utils.StringToUint(context.Param("id"))
+
+	// First
+	userData, err := model.FindUserById(id)
 	if err != nil {
 		context.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
 		return
 	}
 
 	// Delete
-	err = account.DestroyAccountByUser(&user)
+	err = model.DeleteUserById(userData.ID)
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"error": err})
 		return

@@ -48,6 +48,12 @@ type AccountInput struct {
 	Name string `json:"name"`
 }
 
+type UserInput struct {
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Email     string `json:"email"`
+}
+
 type RoleInput struct {
 	Name string `json:"name"`
 }

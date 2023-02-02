@@ -19,17 +19,17 @@ type User struct {
 
 	// Two Factor Auth
 	SignInTwofa     bool   `gorm:"default:false"`
-	TwofaCode       string `gorm:"default:null,index:idx_twofa_code"`
+	TwofaCode       string `gorm:"default:null;index:idx_twofa_code"`
 	TwofaCodeAt     time.Time
 	TwofaCodeSentAt time.Time
 
 	// Change email
-	EmailToken  string `gorm:"default:null,index:idx_email_token"`
+	EmailToken  string `gorm:"default:null;index:idx_email_token"`
 	EmailAt     time.Time
 	EmailSentAt time.Time
 
 	// Recoverable
-	PasswordToken  string `gorm:"default:null,index:idx_password_token"`
+	PasswordToken  string `gorm:"default:null;index:idx_password_token"`
 	PasswordAt     time.Time
 	PasswordSentAt time.Time
 
@@ -41,26 +41,24 @@ type User struct {
 	LastSignInIp    string `gorm:"default:null"`
 
 	// Confirmable
-	ConfirmationToken  string `gorm:"default:null,index:idx_confirmation_token"`
+	ConfirmationToken  string `gorm:"default:null;index:idx_confirmation_token"`
 	ConfirmationAt     time.Time
 	ConfirmationSentAt time.Time
 	ConfirmationEmail  bool `gorm:"default:false"`
 
 	// Invintation
-	InvitationToken  string `gorm:"default:null,index:idx_invitation_token"`
+	InvitationToken  string `gorm:"default:null;index:idx_invitation_token"`
 	InvitationAt     time.Time
 	InvitationSentAt time.Time
 
 	// Lockable
 	FailedAttempts int
-	LockedToken    string `gorm:"default:null,index:idx_locked_token"`
+	LockedToken    string `gorm:"default:null;index:idx_locked_token"`
 	LockedAt       time.Time
 	LockedSentAt   time.Time
 
 	// Relations
-	Roles       []Role
-	Permissions []Permission
-	Accounts    []*Account `gorm:"many2many:user_accounts;references:ID;"`
+	Accounts []*Account `gorm:"many2many:user_accounts;references:ID;"`
 }
 
 type UserResponse struct {
@@ -74,6 +72,38 @@ type UserResponse struct {
 
 	// Relations
 	Accounts []Account `json:"accounts"`
+}
+
+func AllUsers(limit int) ([]User, error) {
+	var users []User
+
+	err := database.Sql.Limit(limit).Find(&users).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
+func TotalUsers() int64 {
+	var count int64
+
+	database.Sql.Debug().Model(&User{}).Count(&count)
+
+	return count
+}
+
+func GetUser(id int) (User, error) {
+	var user User
+
+	err := database.Sql.Where("ID = ?", id).First(&user).Error
+
+	if err != nil {
+		return User{}, err
+	}
+
+	return user, nil
 }
 
 func (user *User) Save() (*User, error) {
@@ -172,14 +202,12 @@ func FindUserById(id uint) (User, error) {
 	return user, nil
 }
 
-func CountUser() int {
-	var user User
+func DeleteUserById(id uint) error {
+	err := database.Sql.Debug().Where("ID = ?", id).Delete(&User{}).Error
 
-	result := database.Sql.Debug().Find(&user)
-
-	if result.Error != nil {
-		return 0
+	if err != nil {
+		return err
 	}
 
-	return int(result.RowsAffected)
+	return nil
 }

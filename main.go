@@ -6,7 +6,10 @@ import (
 	"goapi/database"
 	"goapi/middleware"
 	"goapi/model"
+	"goapi/utils"
+	"html"
 	"log"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -33,6 +36,7 @@ func loadDatabase() {
 	// Create Table
 	database.Sql.AutoMigrate(&model.User{})
 	database.Sql.AutoMigrate(&model.Account{})
+	database.Sql.AutoMigrate(&model.Crm{})
 
 	// Roles & Permissions
 	database.Sql.AutoMigrate(&model.Role{})
@@ -43,12 +47,13 @@ func loadDatabase() {
 
 func seedDatabase() {
 	seedRoles := []string{"admin", "office", "owner", "user"}
-	seedModules := []string{"roles", "permissions", "accounts", "invoices", "crms", "prosperts"}
+	seedModules := []string{"roles", "permissions", "users", "accounts", "invoices", "crms", "prosperts"}
 	seedPermissions := []string{"all", "show", "create", "edit", "destroy"}
+
 	for _, roleName := range seedRoles {
-		role := model.Role{Name: roleName}
-		roleResult := database.Sql.Debug().FirstOrCreate(&role, model.Role{Name: roleName})
-		if roleResult.RowsAffected > 0 {
+		role := model.Role{Name: roleName, UserID: 0}
+		database.Sql.Debug().FirstOrCreate(&role, role)
+		if role.ID > 0 {
 			if roleName == "user" {
 				seedModules = []string{"crms", "prosperts"}
 				seedPermissions = []string{"all", "show"}
@@ -57,13 +62,32 @@ func seedDatabase() {
 				for _, permissionName := range seedPermissions {
 					modulePermission := moduleName + "." + permissionName
 					permission := model.Permission{Name: modulePermission}
-					permissionResult := database.Sql.Debug().FirstOrCreate(&permission, model.Permission{Name: modulePermission})
-					if permissionResult.RowsAffected > 0 {
-						model.AssignPermissions(roleName, permissionName)
+					database.Sql.Debug().FirstOrCreate(&permission, permission)
+					if permission.ID > 0 {
+						model.AssignPermissions(roleName, modulePermission)
 					}
 				}
 			}
 		}
+	}
+
+	hashedPassword, err := utils.HashPassword("demodemo")
+
+	if err != nil {
+		panic(err)
+	}
+
+	user := model.User{
+		FirstName: "Admin",
+		LastName:  "GO",
+		Email:     html.EscapeString(strings.TrimSpace("admin@go.com")),
+		Password:  hashedPassword,
+	}
+
+	database.Sql.Debug().FirstOrCreate(&user, model.User{Email: "admin@go.com"})
+
+	if user.ID > 0 {
+		model.AssignRole(user.ID, "admin")
 	}
 }
 

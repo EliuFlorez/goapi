@@ -57,7 +57,7 @@ func ListRoles(limit int) ([]Role, error) {
 }
 
 // GetRole return first stored roles
-func GetRole(id int) (Role, error) {
+func GetRole(id uint) (Role, error) {
 	var role Role
 	err := database.Sql.Debug().Where("ID = ?", id).First(&role).Error
 	if err != nil {
@@ -85,7 +85,7 @@ func CreateRole(roleName string) error {
 }
 
 // Edit Role
-func EditRole(id int, name string) error {
+func EditRole(id uint, name string) error {
 	// check if the role
 	var role Role
 	res := database.Sql.Debug().Where("ID = ?", id).First(&role)
@@ -105,7 +105,7 @@ func EditRole(id int, name string) error {
 
 // DeleteRole deletes a given role
 // if the role is assigned to a user it returns an error
-func DestroyRole(id int) error {
+func DestroyRole(id uint) error {
 	// check if the role is assigned to a user
 	var userRole UserRole
 	res := database.Sql.Debug().Where("role_id = ?", id).First(&userRole)

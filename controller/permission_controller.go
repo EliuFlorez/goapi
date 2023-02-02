@@ -7,7 +7,6 @@ import (
 	"goapi/validator"
 	"math"
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gookit/validate"
@@ -48,7 +47,7 @@ func GetPermission(context *gin.Context) {
 	}
 
 	// ID
-	id, _ := strconv.Atoi(context.Param("id"))
+	id := utils.StringToUint(context.Param("id"))
 
 	// First
 	role, err := model.GetPermission(id)
@@ -135,7 +134,7 @@ func UpdatePermission(context *gin.Context) {
 	}
 
 	// ID
-	id, _ := strconv.Atoi(context.Param("id"))
+	id := utils.StringToUint(context.Param("id"))
 
 	// Edit
 	err = model.EditPermission(id, input.Name)
@@ -156,7 +155,7 @@ func DeletePermission(context *gin.Context) {
 	}
 
 	// ID
-	id, _ := strconv.Atoi(context.Param("id"))
+	id := utils.StringToUint(context.Param("id"))
 
 	// First
 	err = model.DestroyPermission(id)
